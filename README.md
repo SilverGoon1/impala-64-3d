@@ -15,4 +15,6 @@ npm run dev    # local
 npm run build  # production build to dist/
 ```
 
+Live: deployed on Vercel (auto-deploys from `main`).
+
 URL params (handy for screenshots): `?explode=1`, `?select=engine`, `?engine=L80`, `?paint=936`, `?top=down`.
