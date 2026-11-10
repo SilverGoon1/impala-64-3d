@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 import { DIM } from './data.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 // Car space: metres, origin on the ground at mid-length, x forward, y up, z to the right.
 const L = DIM.length, HL = L / 2;
@@ -31,6 +32,11 @@ export function makeMaterials(envIntensity = 1) {
     topFrame: new THREE.MeshStandardMaterial({ color: '#2c2f35', metalness: 0.6, roughness: 0.45 }),
     radiator: new THREE.MeshStandardMaterial({ color: '#202225', metalness: 0.7, roughness: 0.55 }),
     hydraulic: new THREE.MeshStandardMaterial({ color: '#c0c4ca', metalness: 0.9, roughness: 0.25 }),
+    tank: new THREE.MeshStandardMaterial({ color: '#a3a59c', metalness: 0.75, roughness: 0.42 }),
+    strap: new THREE.MeshStandardMaterial({ color: '#8d9096', metalness: 0.85, roughness: 0.35 }),
+    insul: new THREE.MeshStandardMaterial({ color: '#f0a23a', roughness: 0.95, emissive: '#7a3d00', emissiveIntensity: 0.35 }),
+    hose: new THREE.MeshStandardMaterial({ color: '#1a1a1c', roughness: 0.8 }),
+    fuelLine: new THREE.MeshStandardMaterial({ color: '#d7dade', metalness: 0.9, roughness: 0.2 }),
   };
   for (const k in m) m[k].envMapIntensity = envIntensity;
   return m;
@@ -199,6 +205,9 @@ function buildBody(M) {
     g.add(beam(V(0.40, 0.36, s * (HW + 0.001)), V(0.40, 0.96, s * (HW + 0.001)), 0.003, 0.004, M.black));
     g.add(beam(V(-0.85, 0.36, s * (HW + 0.001)), V(-0.85, 0.96, s * (HW + 0.001)), 0.003, 0.004, M.black));
   }
+  // Fuel filler door — left (driver-side) rear quarter on 1961-64 full-size Chevrolets
+  g.add(mesh(new THREE.BoxGeometry(0.13, 0.10, 0.006), M.paint, -2.15, 0.80, -(HW + 0.002)));
+  g.add(mesh(new THREE.BoxGeometry(0.14, 0.11, 0.003), M.chrome, -2.15, 0.80, -(HW + 0.0005)));
   // Floor pan & firewall (visible when isolated)
   g.add(mesh(new THREE.BoxGeometry(2.6, 0.02, 1.8), M.steel, -0.2, 0.31, 0));
   return g;
@@ -271,6 +280,8 @@ export function buildEngine(M, type = 'sbc', dual = false) {
     }
   }
   g.add(mesh(new THREE.BoxGeometry(0.55, 0.12, 0.24), M.black, ex - 0.02, 0.38, 0)); // oil pan
+  // engine-driven mechanical fuel pump (front, passenger side of block — approximate position)
+  const pump = mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.07, 20), M.steel, ex + 0.22, 0.42, 0.19); pump.rotation.x = Math.PI / 2; g.add(pump);
   // timing cover, water pump, fan, radiator
   g.add(mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.06, 20), M.steel, ex + 0.38, 0.52, 0).rotateZ(Math.PI / 2));
   const fan = mesh(new THREE.CylinderGeometry(0.20, 0.20, 0.01, 6), M.black, ex + 0.50, 0.58, 0); fan.rotation.z = Math.PI / 2; g.add(fan);
@@ -421,6 +432,61 @@ function buildTop(M) {
   return g;
 }
 
+// ---------- FUEL TANK, LINES & FILLER ----------
+// Tank: 38-1/4 x 15-1/8 x 11-1/8 in, 20 US gal (reproduction of original, except wagons).
+export const TANK = { x: -1.95, y: 0.545, w: 38.25 * 0.0254, d: 15.125 * 0.0254, h: 11.125 * 0.0254 };
+function tube(points, r, mat, seg = 64) {
+  const c = new THREE.CatmullRomCurve3(points, false, 'centripetal');
+  return mesh(new THREE.TubeGeometry(c, seg, r, 10), mat);
+}
+function buildFuel(M) {
+  const g = new THREE.Group();
+  const { x, y, w, d, h } = TANK;
+  const tank = mesh(new RoundedBoxGeometry(d, h, w, 4, 0.04), M.tank, x, y, 0); g.add(tank);
+  // stamped seam flange around the middle
+  g.add(mesh(new THREE.BoxGeometry(d + 0.02, 0.012, w + 0.02), M.tank, x, y + 0.02, 0));
+  // two steel hold-down straps (front anchor at rear crossmember, rear bolt into trunk floor)
+  const top = y + h / 2, bot = y - h / 2, fx = x + d / 2, rx = x - d / 2;
+  for (const s of [-1, 1]) {
+    const z = s * 0.30;
+    const pts = [V(-1.66, 0.45, z), V(fx + 0.012, 0.42, z), V(fx + 0.012, bot + 0.02, z), V(fx - 0.03, bot - 0.012, z), V(rx + 0.03, bot - 0.012, z), V(rx - 0.012, bot + 0.02, z), V(rx - 0.012, top + 0.03, z)];
+    for (let i = 0; i < pts.length - 1; i++) g.add(beam(pts[i], pts[i + 1], 0.0254, 0.005, M.strap));
+    g.add(mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.03, 12), M.chrome, -1.66, 0.45, z));
+    g.add(mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.03, 12), M.chrome, rx - 0.012, top + 0.035, z));
+  }
+  // sending unit + lock ring on tank top, gauge wire
+  g.add(mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.012, 28), M.chrome, -1.85, top + 0.006, 0.25));
+  g.add(mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.03, 16), M.steel, -1.85, top + 0.02, 0.25));
+  g.add(tube([V(-1.85, top + 0.03, 0.25), V(-1.80, top + 0.06, 0.15), V(-1.70, top + 0.05, 0.05)], 0.003, M.engineOrange, 16));
+  // filler: neoprene hose from tank to steel filler neck, ending at the left rear-quarter fuel door
+  g.add(tube([V(-2.04, top - 0.01, -0.36), V(-2.06, top + 0.03, -0.48), V(-2.09, top + 0.06, -0.58)], 0.03, M.hose, 16));
+  g.add(tube([V(-2.09, top + 0.06, -0.58), V(-2.12, 0.77, -0.78), V(-2.15, 0.80, -0.95)], 0.026, M.steel, 24));
+  const cap = mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.02, 24), M.chrome, -2.15, 0.80, -0.955); cap.rotation.x = Math.PI / 2; g.add(cap);
+  // vent hose (routing approximate)
+  g.add(tube([V(-2.06, top, 0.10), V(-2.08, top + 0.10, 0.12), V(-2.12, 0.86, 0.20)], 0.007, M.hose, 16));
+  // 3/8 in steel fuel line: sender -> along frame -> engine-driven fuel pump
+  const line = [V(-1.85, top + 0.03, 0.25), V(-1.76, top + 0.02, 0.36), V(-1.71, 0.45, 0.42), V(-1.55, 0.49, 0.42), V(-1.10, 0.49, 0.41),
+    V(-0.95, 0.30, 0.40), V(-0.35, 0.30, 0.07), V(0.05, 0.30, 0.07), V(1.0, 0.30, 0.34), V(1.55, 0.33, 0.33), V(1.77, 0.335, 0.235)];
+  g.add(tube(line, 0.0065, M.fuelLine, 200));
+  return g;
+}
+// Insulation is its own system so it can be pulled away from the tank.
+function buildInsulation(M) {
+  const g = new THREE.Group();
+  const { x, y, w, d, h } = TANK; const top = y + h / 2, bot = y - h / 2;
+  const topPads = new THREE.Group(); topPads.name = 'topPads'; g.add(topPads);
+  // two 38 in anti-squeak cushions across the tank top + the anti-pop pad in the centre
+  for (const dx of [d / 2 - 0.05, -d / 2 + 0.05]) topPads.add(mesh(new RoundedBoxGeometry(0.06, 0.014, 38 * 0.0254, 2, 0.005), M.insul, x + dx, top + 0.007, 0));
+  topPads.add(mesh(new RoundedBoxGeometry(0.20, 0.016, 0.26, 2, 0.006), M.insul, x, top + 0.008, -0.06));
+  const strapIns = new THREE.Group(); strapIns.name = 'strapIns'; g.add(strapIns);
+  for (const s of [-1, 1]) {
+    const z = s * 0.30;
+    strapIns.add(mesh(new RoundedBoxGeometry(d + 0.02, 0.012, 0.04, 2, 0.004), M.insul, x, bot - 0.006, z));
+  }
+  g.userData.topPads = topPads; g.userData.strapIns = strapIns;
+  return g;
+}
+
 export function buildCar(M) {
   const systems = {
     body: buildBody(M),
@@ -429,6 +495,8 @@ export function buildCar(M) {
     suspension: buildSuspension(M),
     interior: buildInterior(M),
     top: buildTop(M),
+    fuel: buildFuel(M),
+    insulation: buildInsulation(M),
   };
   return systems;
 }

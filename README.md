@@ -17,4 +17,6 @@ npm run build  # production build to dist/
 
 Live: deployed on Vercel (auto-deploys from `main`).
 
-URL params (handy for screenshots): `?explode=1`, `?select=engine`, `?engine=L80`, `?paint=936`, `?top=down`.
+Priority system: **Fuel tank & lines + tank insulation** (anti-squeak cushions, anti-pop pad, strap seals) — `?select=fuel` / `?select=insulation`.
+
+URL params (handy for screenshots): `?explode=1`, `?select=engine`, `?select=fuel`, `?engine=L80`, `?paint=936`, `?top=down`.

@@ -13,6 +13,15 @@ export const SOURCES = [
   { id: 'shafers', title: "Shafer's Classic – Convertible Top Assembly, 1962-1964 full-size Chevrolet (TechHelp)", url: 'https://shafersclassic.com/file/6644-CBK400.pdf' },
   { id: 'toptech', title: 'Convertible Top Guys – 1961-64 Impala tops & hydraulics', url: 'https://www.convertibletopguys.com/convertible/660/1961-64-Chevrolet-Impala-Impala-SS' },
   { id: 'overview', title: '1964 Chevrolet Impala model overview PDF (SS interior, trim, top colours)', url: 'https://assets.ctfassets.net/x8mrk904j4k6/64QRcScu6gL4Uo3oia9ZPp/23c95ffaf046d9fee62fe20881f5185c/1964_Chevrolet_Impala_2025-09-08.pdf' },
+  { id: 'oertank', title: 'OER – 1961-64 Impala/Bel Air/Biscayne 20-gallon fuel tank (dimensions, except wagon)', url: 'https://www.oerparts.com/product/ft4002b.html' },
+  { id: 'carsinc', title: 'CARS Inc. – 1961-64 Impala fuel tank, 20 gal, 38-1/4 × 15-1/8 × 11-1/8 in', url: 'https://carsinc.com/en/item/6550/' },
+  { id: 'earlybirds', title: 'Early Birds – Impala fuel tanks & related (strap seals, anti-squeak kit, 1964 filler neck, neoprene filler hose, grommet)', url: 'https://www.early-birds.ca/catalog-impala-fuel_tanks__related-2035.html' },
+  { id: 'antisqueak', title: 'Auto Obsession – GM fuel-tank anti-squeak 5-piece kit (38 in cushions + anti-pop pad), fits 1964 Impala', url: 'https://autoobsession.com/product/fuel-tank-insulator-fqdw-w-862a' },
+  { id: 'oerhw', title: 'OER – 1964 Impala fuel-tank hardware (straps, anti-squeak sets for 1 in straps, 1964 filler neck)', url: 'https://www.oerparts.com/shop/1964/chevrolet/impala/parts/fuel-system/fuel-tank-hardware/' },
+  { id: 'tankkit', title: 'Classic Chevy – 1961-64 full-size gas tank kit (tank, 3/8 in sender, straps, anti-squeak kit)', url: 'https://www.classicchevy.ca/engine/fuel-system/gas-tanks/gas-tank-kits/full-size-chevy-gas-tank-kit-3-8-sending-unit-hardtop-3052891' },
+  { id: 'hemtank', title: 'Hemmings – How to replace a failing fuel tank (GM tank strapped behind rear axle; insulating anti-squeak pads)', url: 'https://www.hemmings.com/stories/how-to-replace-a-failing-fuel-tank/' },
+  { id: 'bbody', title: 'GM B platform – filler location (1961-64 cars: driver-side rear fender)', url: 'https://www.liquisearch.com/gm_b_platform' },
+  { id: 'cifiller', title: 'Classic Industries – Impala fuel caps & doors (1964 Impala gas door guard)', url: 'https://www.classicindustries.com/shop/all-years/chevrolet/impala/parts/fuel-system/fuel-caps-doors/' },
 ];
 
 const IN = 0.0254;
@@ -36,6 +45,11 @@ export const APPROX = [
   'Beltline, hood, deck and windshield heights, cockpit opening and top-bow positions – shaped by eye to period photos.',
   'Placement and size of individual components (engine, transmission, frame rails, A-arms, seats, dash) – schematic, scaled to the published wheelbase/track.',
   'Paint swatch colours are screen approximations of the factory codes, not paint matches.',
+  'Fuel tank position (behind the rear axle, under the trunk floor, above the rear frame rails) – the general GM layout per Hemmings; exact 1964 coordinates are estimated.',
+  'Fuel-tank strap routing and anchor points, vent-hose routing, sending-unit location on the tank top, and the fuel-line path along the X-frame – schematic.',
+  'Fuel-pump position on the engine and fuel-filler-door size/height on the left rear quarter – estimated.',
+  'Insulator layout: the kit is 5 pieces (38 in cushions plus an anti-pop pad for the tank top); how the 5 pieces are split between tank top and straps here is an interpretation. Insulators are drawn in amber for visibility – originals are black rubber.',
+  'Corrosion protection by the insulators is inferred (they stop metal-to-metal rubbing that wears through the coating); sources only state noise/wear.',
   'Number of body-mount positions on the frame is not published in our sources; markers show representative locations.',
 ];
 
@@ -68,6 +82,51 @@ export const ENGINES = [
 ];
 
 export const SYSTEMS = {
+  fuel: {
+    name: 'Fuel Tank & Lines', color: '#ffd23f', priority: true,
+    blurb: 'A 20-gallon stamped-steel tank strapped up under the trunk floor behind the rear axle. A sending unit on top feeds a steel line that runs forward along the X-frame to the engine-driven fuel pump. On 1961-64 full-size Chevrolets the filler is in the driver-side (left) rear fender, not behind the licence plate (that arrived in 1965).',
+    specs: [
+      ['Capacity', '20 US gal (except wagons)', 'oertank, carsinc'],
+      ['Tank size', '38-1/4 × 15-1/8 × 11-1/8 in (reproduction of original)', 'oertank, carsinc'],
+      ['Construction', 'Stamped steel; repros zinc- or terne-coated', 'oertank'],
+      ['Location', 'Strapped behind rear axle, under trunk floor (approx. for ’64)', 'hemtank'],
+      ['Hold-down', '2 steel straps (pair), 1 in wide', 'oerhw'],
+      ['Sending unit', '3/8 in outlet (V8, no return); 5/16 in also listed; lock ring + O-ring', 'tankkit, carsinc'],
+      ['Filler', 'Left rear fender fuel door; 1964-specific filler neck; neoprene tank-to-neck hose; grommet at door', 'bbody, earlybirds, cifiller'],
+      ['Lines', 'Fuel feed + vent, rubber hoses with clamps at the tank', 'hemtank'],
+    ],
+    concept: [
+      'Moving the tank (e.g. ahead of the axle for crash safety) means new frame brackets, a new filler route through the quarter panel and a reshaped trunk floor.',
+      'EFI swaps need an in-tank or external high-pressure pump and a return line — the 1961-64 EFI-ready tanks exist; the line must still follow the X-frame.',
+      'A fuel cell in the trunk removes the under-floor tank but needs a sealed bulkhead and vent to the outside of the body.',
+      'The dual exhaust passes beneath the tank: rerouting the tailpipes changes how much heat reaches the tank and fuel.',
+    ],
+  },
+  insulation: {
+    name: 'Tank Insulation', color: '#f0a23a', priority: true, sub: true,
+    blurb: 'Rubber anti-squeak cushions sit between the tank and the trunk floor, and rubber strap seals sit between the steel hold-down straps and the tank. They stop metal-to-metal contact: no squeaks or rattles, less vibration transfer, and no wear-through of the tank coating.',
+    specs: [
+      ['Kit', '5-piece anti-squeak set: 38 in cushions + anti-pop pad for tank top (fits 1964 Impala)', 'antisqueak'],
+      ['Strap seals', 'Rubber strip between steel straps and tank – stops metal-to-metal wear and squeaks', 'earlybirds'],
+      ['Strap width', 'For 1 in wide straps', 'oerhw'],
+      ['Material', 'Rubber (shown amber for visibility)', 'earlybirds, oerhw'],
+      ['Install', 'Pads held on the tank with weatherstrip adhesive before raising it', 'hemtank'],
+    ],
+    purpose: [
+      ['Noise', 'Stops squeaks and drumming between the tank, straps and trunk floor', 'earlybirds, antisqueak'],
+      ['Vibration', 'Cushions the tank from body and straps', 'antisqueak'],
+      ['Abrasion', 'Prevents metal-to-metal wear from vibration', 'earlybirds'],
+      ['Corrosion', 'Inferred: keeps rubbing from wearing through the coating, where rust starts', ''],
+      ['Exhaust heat', 'Not a heat shield – the original rubber pads only isolate; tailpipes run below the tank, so add a shield if heat matters', ''],
+    ],
+    concept: [
+      'Closed-cell neoprene/EPDM foam pads resist fuel and water better than open-cell felt and don’t hold moisture against the tank.',
+      'Add a reflective aluminium heat shield between the tailpipes and the tank floor, especially with a hotter 409 or headers.',
+      'Stainless straps (offered for 1961-64) with fresh rubber seals eliminate the strap-rust-to-tank-rust chain.',
+      'A fuel-cell concept still needs isolation: rubber-isolated mounting cradle plus a vapour-tight trunk bulkhead.',
+      'Lining the trunk floor above the tank with sound-deadening mat reduces fuel slosh noise reaching the cabin.',
+    ],
+  },
   body: {
     name: 'Body & Sheet Metal', color: '#e9b44c',
     blurb: 'Welded steel body on a separate frame. 1964 styling: flat trunk lid, full-width grille with quad headlamps, a chrome strip from the hood centre to the taillights, and three round taillights per side set in a stamped alloy rear panel.',
@@ -195,6 +254,18 @@ export const CONNECTIONS = [
   { a: 'interior', b: 'suspension', name: 'Steering column → recirculating-ball gearbox', p: [0.45, 0.75, -0.37], p2: [1.95, 0.32, -0.40] },
   { a: 'interior', b: 'engine', name: 'Shifter (column or SS console floor shift) → transmission', p: [0.15, 0.55, 0], p2: [0.65, 0.40, 0] },
   { a: 'engine', b: 'body', name: 'Radiator → radiator support; firewall pass-throughs', p: [2.3, 0.6, 0], p2: [2.42, 0.6, 0] },
+  { a: 'fuel', b: 'chassis', name: 'Front strap anchors → frame rear crossmember', p: [-1.66, 0.45, -0.30], p2: [-1.62, 0.42, -0.30] },
+  { a: 'fuel', b: 'chassis', name: 'Front strap anchors → frame rear crossmember', p: [-1.66, 0.45, 0.30], p2: [-1.62, 0.42, 0.30] },
+  { a: 'fuel', b: 'body', name: 'Rear strap bolts → trunk floor', p: [-2.154, 0.72, -0.30], p2: [-2.154, 0.76, -0.30] },
+  { a: 'fuel', b: 'body', name: 'Rear strap bolts → trunk floor', p: [-2.154, 0.72, 0.30], p2: [-2.154, 0.76, 0.30] },
+  { a: 'fuel', b: 'body', name: 'Filler neck → left rear-quarter fuel door & grommet', p: [-2.15, 0.80, -0.95], p2: [-2.15, 0.80, -0.985] },
+  { a: 'fuel', b: 'engine', name: '3/8 in fuel line → engine-driven fuel pump', p: [1.77, 0.335, 0.235], p2: [1.77, 0.335, 0.19] },
+  { a: 'fuel', b: 'engine', name: 'Exhaust heat zone: tailpipes pass beneath the tank', p: [-1.95, 0.40, 0.40], p2: [-1.95, 0.27, 0.40] },
+  { a: 'fuel', b: 'interior', name: 'Sending-unit wire → dash fuel gauge (via rear body harness)', p: [-1.85, 0.72, 0.25], p2: [0.37, 0.89, -0.30] },
+  { a: 'insulation', b: 'body', name: 'Anti-squeak cushions & anti-pop pad → trunk floor', p: [-1.95, 0.70, -0.06], p2: [-1.95, 0.75, -0.06] },
+  { a: 'insulation', b: 'fuel', name: 'Strap seals between steel straps and tank', p: [-1.95, 0.398, -0.30], p2: [-1.95, 0.384, -0.30] },
+  { a: 'insulation', b: 'fuel', name: 'Strap seals between steel straps and tank', p: [-1.95, 0.398, 0.30], p2: [-1.95, 0.384, 0.30] },
+  { a: 'insulation', b: 'fuel', name: 'Cushions bonded to tank top (weatherstrip adhesive)', p: [-1.80, 0.70, 0.3], p2: [-1.80, 0.687, 0.3] },
 ];
 
 // Explode vectors (metres) for each system at explode = 1.
@@ -205,4 +276,6 @@ export const EXPLODE = {
   engine: [ 0.95, 0.30, 0 ],
   suspension: [ 0, -0.32, 0 ],
   chassis: [ 0, -0.80, 0 ],
+  fuel: [ -1.0, 0.12, 0 ],
+  insulation: [ -1.0, 0.12, 0 ],
 };

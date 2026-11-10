@@ -80,3 +80,13 @@ dialog ul { padding-left: 18px; } dialog li { margin: 6px 0; } dialog a { color:
 .numbered { list-style: none; margin-left: 0 !important; }
 .numbered li { display: flex; gap: 6px; align-items: flex-start; margin: 3px 0; }
 .num { flex: none; width: 17px; height: 17px; border-radius: 50%; background: rgba(255,255,255,.12); font-size: 10px; font-weight: 700; display: grid; place-items: center; color: #fff; }
+
+.sys-btn.priority { background: linear-gradient(90deg, rgba(255,210,63,.16), rgba(240,162,58,.05)); border-color: rgba(255,210,63,.35); }
+.sys-btn.priority.active { border-color: #ffd23f; box-shadow: 0 0 0 1px rgba(255,210,63,.4), 0 0 18px rgba(255,190,60,.25); }
+.sys-btn.sub { margin-left: 14px; width: calc(100% - 14px); padding: 7px 10px; }
+.sub-arrow { color: #f0a23a; margin-right: -4px; }
+.badge { font-size: 9px; letter-spacing: .1em; font-weight: 800; color: #1a1300; background: #ffd23f; border-radius: 4px; padding: 1px 5px; margin-left: 4px; vertical-align: 1px; }
+.ribbon { display: inline-block; font-size: 11px; font-weight: 700; color: #1a1300; background: linear-gradient(90deg, #ffd23f, #f0a23a); border-radius: 6px; padding: 3px 8px; margin-bottom: 10px; }
+.part-tag { font-size: 11px; font-weight: 700; color: #1a1300; background: #f0a23a; border-radius: 6px; padding: 3px 8px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+.ins-jump { margin: 4px 0 6px; width: 100%; }
+.purpose th { color: #f0a23a; }

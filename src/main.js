@@ -8,7 +8,8 @@ import './style.css';
 
 const params = new URLSearchParams(location.search);
 const $ = (s) => document.querySelector(s);
-const ORDER = ['body', 'chassis', 'engine', 'suspension', 'interior', 'top'];
+const ORDER = ['fuel', 'insulation', 'body', 'chassis', 'engine', 'suspension', 'interior', 'top'];
+const FAMILY = new Set(['fuel', 'insulation']);
 
 // ---------- renderer / scene ----------
 const canvasWrap = $('#viewport');
@@ -87,6 +88,13 @@ tonneau.rotation.x = Math.PI / 2; tonneau.position.set(-1.12, 0.93, 0); tonneau.
 built.top.add(tonneau); tonneau.userData.system = 'top';
 sysState.top.mats.push(...localizeMaterials(tonneau, 'top'));
 
+// floating part tags for the insulation
+const partTags = [];
+for (const [grp, text, pos] of [[built.insulation.userData.topPads, 'Anti-squeak pads (tank ↔ trunk floor)', [-1.95, 0.72, 0.45]], [built.insulation.userData.strapIns, 'Strap insulators (tank ↔ straps)', [-1.95, 0.37, 0.45]]]) {
+  const div = document.createElement('div'); div.className = 'part-tag'; div.textContent = text;
+  const o = new CSS2DObject(div); o.position.fromArray(pos); grp.add(o); o.visible = false; partTags.push(o);
+}
+
 // ---------- connections ----------
 const connGroup = new THREE.Group(); scene.add(connGroup);
 const markerGeo = new THREE.SphereGeometry(0.022, 16, 12);
@@ -114,8 +122,8 @@ function buildUI() {
   const list = $('#system-list');
   for (const key of ORDER) {
     const s = SYSTEMS[key];
-    const b = document.createElement('button'); b.className = 'sys-btn'; b.dataset.key = key;
-    b.innerHTML = `<span class="dot" style="background:${s.color}"></span><span class="sys-name">${s.name}</span><span class="sys-count">${CONNECTIONS.filter(c => c.a === key || c.b === key).length} links</span>`;
+    const b = document.createElement('button'); b.className = 'sys-btn' + (s.priority ? ' priority' : '') + (s.sub ? ' sub' : ''); b.dataset.key = key;
+    b.innerHTML = `${s.sub ? '<span class="sub-arrow">↳</span>' : ''}<span class="dot" style="background:${s.color}"></span><span class="sys-name">${s.name}${s.priority && !s.sub ? ' <span class="badge">PRIORITY</span>' : ''}</span><span class="sys-count">${CONNECTIONS.filter(c => c.a === key || c.b === key).length} links</span>`;
     b.onclick = () => select(state.selected === key ? null : key);
     list.appendChild(b);
   }
@@ -170,7 +178,10 @@ function renderInfo() {
       <div><h2>${s.name}</h2><small>${conns.length} connection points · ${Object.keys(byOther).length} linked systems</small></div>
       <button id="close-info" class="icon" aria-label="Close">✕</button>
     </div>
+    ${s.priority ? `<div class="ribbon">★ Priority system${key === 'fuel' ? ' · insulation pulled out in amber' : ' · pulled away from the tank'}</div>` : ''}
     <p class="blurb">${s.blurb}</p>
+    ${s.purpose ? `<h3>What the insulation does</h3><table class="specs purpose">${s.purpose.map(([k, v, src]) => `<tr><th>${k}</th><td>${v} ${srcTags(src)}</td></tr>`).join('')}</table>` : ''}
+    ${key === 'fuel' ? `<button class="link-card ins-jump" data-key="insulation" style="--c:${SYSTEMS.insulation.color}"><span class="lc-title"><span class="dot" style="background:${SYSTEMS.insulation.color}"></span>Open tank insulation →</span><ul class="numbered"><li>Anti-squeak cushions + anti-pop pad (tank ↔ trunk floor)</li><li>Strap seals (tank ↔ steel straps)</li></ul></button>` : ''}
     <h3>Specifications</h3>
     <table class="specs">${specs.map(([k, v, src]) => `<tr><th>${k}</th><td>${v} ${srcTags(src)}</td></tr>`).join('')}</table>
     <h3>Connects to</h3>
@@ -183,12 +194,12 @@ function renderInfo() {
     <ul class="concept">${s.concept.map(c => `<li>${c}</li>`).join('')}</ul>`;
   info.classList.add('open');
   $('#close-info').onclick = () => select(null);
-  info.querySelectorAll('.link-card').forEach(b => b.onclick = () => select(b.dataset.key));
+  info.querySelectorAll('.link-card, .ins-jump').forEach(b => b.onclick = () => select(b.dataset.key));
 }
 
 function select(key) {
   state.selected = key;
-  for (const k of ORDER) sysState[k].extractTarget = k === key ? 1 : 0;
+  for (const k of ORDER) sysState[k].extractTarget = (k === key || (FAMILY.has(key) && FAMILY.has(k))) ? 1 : 0;
   const names = [];
   for (const o of connObjs) {
     const rel = !!key && (o.c.a === key || o.c.b === key);
@@ -196,6 +207,7 @@ function select(key) {
     if (rel) { let n = names.indexOf(o.c.name); if (n < 0) { names.push(o.c.name); n = names.length - 1; } o.label.element.textContent = n + 1; o.label.element.style.borderColor = SYSTEMS[o.c.a === key ? o.c.b : o.c.a].color; o.label.visible = true; }
   }
   state.connNames = names;
+  if (FAMILY.has(key)) tween = { t: 0, fromP: camera.position.clone(), fromT: controls.target.clone(), toP: new THREE.Vector3(-6.6, 2.3, 4.4).sub(new THREE.Vector3(-1.8, 0.7, 0)).multiplyScalar(innerWidth / innerHeight < 0.8 ? 1.6 : 1).add(new THREE.Vector3(-1.8, 0.7, 0)), toT: new THREE.Vector3(-1.8, 0.7, 0) };
   renderInfo();
   resize();
 }
@@ -267,15 +279,25 @@ function frame() {
     const ve = new THREE.Vector3().fromArray(ev);
     const dir = ve.lengthSq() > 0 ? ve.clone().normalize() : new THREE.Vector3(0, 1, 0);
     h.position.copy(ve).multiplyScalar(state.explode).addScaledVector(dir, lift * (key === 'chassis' || key === 'suspension' ? 0.6 : 0.9));
+    if (key === 'insulation') {
+      h.position.copy(holders.fuel.position);
+      const e = Math.max(ex, state.explode);
+      const ud = built.insulation.userData;
+      ud.topPads.position.y = 0.34 * e + 0.02 * Math.sin(t * 2) * ex;
+      ud.strapIns.position.y = -0.26 * e;
+      ud.strapIns.position.z = 0;
+    }
     if (key === 'chassis' || key === 'suspension') h.position.y = Math.max(h.position.y, -0.9 + 0.0);
-    h.rotation.y = ex * 0.06 * Math.sin(t * 0.8);
+    h.rotation.y = key === 'insulation' ? holders.fuel.rotation.y : ex * 0.06 * Math.sin(t * 0.8);
     // visibility / ghosting
     let op = 1;
-    if (state.selected && state.selected !== key && state.isolate) op = 0.06;
-    else if (state.selected && state.selected !== key) op = 0.35;
+    const fam = state.selected && FAMILY.has(state.selected) && FAMILY.has(key);
+    if (state.selected && state.selected !== key && !fam && state.isolate) op = 0.06;
+    else if (state.selected && state.selected !== key && !fam) op = 0.35;
+    else if (fam && state.selected === 'insulation' && key === 'fuel') op = 0.55;
     if (state.xray && (key === 'body' || key === 'top') && state.selected !== key) op = Math.min(op, 0.18);
     s.opacity += (op - s.opacity) * k;
-    const glowT = state.selected === key ? 0.35 + 0.15 * Math.sin(t * 3) : (state.hover === key ? 0.25 : 0);
+    const glowT = (state.selected === key || (key === 'insulation' && state.selected === 'fuel')) ? (key === 'fuel' ? 0.12 : 0.35) + (key === 'fuel' ? 0.05 : 0.15) * Math.sin(t * 3) : (state.hover === key ? 0.25 : 0);
     s.glow += (glowT - s.glow) * k;
     const col = new THREE.Color(SYSTEMS[key].color);
     for (const m of s.mats) {
@@ -290,6 +312,7 @@ function frame() {
   }
   carRoot.position.y = Math.max(state.explode * 0.82, Math.max(sysState.chassis.extract, sysState.suspension.extract) * 0.62);
   const z = baseZoom / (1 + 0.42 * state.explode); if (Math.abs(camera.zoom - z) > 1e-4) { camera.zoom = z; camera.updateProjectionMatrix(); }
+  for (const o of partTags) o.visible = FAMILY.has(state.selected) || state.explode > 0.5;
   // convertible top fold
   const pv = built.top.userData.pivot; const td = state.topDown;
   pv.rotation.z = td * 1.75; const sc = 1 - 0.75 * td; pv.scale.set(sc, sc, 1);
