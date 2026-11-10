@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>1964 Chevrolet Impala Convertible · Interactive Systems Explorer</title>
+  <meta name="description" content="Procedural 3D 1964 Chevrolet Impala convertible built from factory dimensions. Extract each system and see how it connects to the rest of the car." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>" />
+</head>
+<body>
+  <div id="viewport"></div>
+  <header class="topbar">
+    <button id="btn-panel" class="icon mobile-only" aria-label="Controls">☰</button>
+    <div class="brand">
+      <h1>’64 Impala Convertible</h1>
+      <p>Systems explorer · built from factory dimensions</p>
+    </div>
+    <div class="dims" id="dims"></div>
+  </header>
+
+  <aside id="panel">
+    <section>
+      <h3>Systems <span class="muted">tap to extract</span></h3>
+      <div id="system-list"></div>
+    </section>
+    <section>
+      <label class="row"><span>Explode all</span><span id="explode-val">0%</span></label>
+      <input id="explode" type="range" min="0" max="1" step="0.01" value="0" />
+    </section>
+    <section class="toggles">
+      <label><input type="checkbox" id="t-conn" checked /> Connection lines</label>
+      <label><input type="checkbox" id="t-isolate" /> Isolate selected</label>
+      <label><input type="checkbox" id="t-xray" /> X-ray body</label>
+      <label><input type="checkbox" id="t-top" checked /> Top up</label>
+      <label><input type="checkbox" id="t-rotate" /> Auto-rotate 360°</label>
+    </section>
+    <section>
+      <h3>Factory paint <span class="muted" id="paint-name"></span></h3>
+      <div id="paint-swatches"></div>
+    </section>
+    <section>
+      <h3>Engine</h3>
+      <select id="engine-select"></select>
+    </section>
+  </aside>
+
+  <aside id="info"></aside>
+
+  <div class="corner">
+    <button id="btn-reset">⟲ Reset view</button>
+    <button id="btn-sources">Sources &amp; accuracy</button>
+  </div>
+  <div class="hint">Drag to orbit · scroll / pinch to zoom · right-drag / two-finger to pan · click a part</div>
+
+  <dialog id="sources">
+    <div class="dlg-head"><h2>Sources</h2><button id="close-sources" class="icon" aria-label="Close">✕</button></div>
+    <p>Every dimension and spec in the panels carries a tag linking to its source.</p>
+    <ul id="source-list"></ul>
+    <h3>Marked approximate</h3>
+    <ul id="approx-list"></ul>
+    <p class="muted">The 3D model is generated procedurally in code (Three.js) — no external model files. Proportions follow the published wheelbase, length, width, height, track and tire size.</p>
+  </dialog>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
