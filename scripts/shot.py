@@ -1,4 +1,6 @@
 import sys, asyncio
+import os
+BASE = os.environ.get('BASE', 'http://localhost:4173/')
 from playwright.async_api import async_playwright
 async def main():
     async with async_playwright() as p:
@@ -10,7 +12,7 @@ async def main():
             logs=[]
             pg.on('console', lambda m: logs.append(m.type+': '+m.text))
             pg.on('pageerror', lambda e: logs.append('PAGEERR '+str(e)))
-            await pg.goto('http://localhost:4173/'+q)
+            await pg.goto(BASE+q)
             await pg.wait_for_timeout(5000)
             await pg.screenshot(path=out)
             print(out, logs[:10])
